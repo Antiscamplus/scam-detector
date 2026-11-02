@@ -1,0 +1,29 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    container_name: scam-caddy
+    restart: unless-stopped
+    ports: ["80:80","443:443","443:443/udp"]
+    volumes: [./Caddyfile:/etc/caddy/Caddyfile, caddy_data:/data, caddy_config:/config, caddy_logs:/var/log/caddy]
+    depends_on: [api, web]
+  api:
+    build: {context: ., dockerfile: Dockerfile.api}
+    container_name: scam-api
+    restart: unless-stopped
+    env_file: [.env]
+    expose: ["8000"]
+    volumes: [./data:/app/data, ./chroma_db:/app/chroma_db, model_cache:/app/.cache]
+    healthcheck:
+      test: ["CMD","curl","-f","http://localhost:8000/health"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 180s
+  web:
+    build: {context: ., dockerfile: Dockerfile.web}
+    container_name: scam-web
+    restart: unless-stopped
+    environment: [API_BASE_URL=http://api:8000]
+    expose: ["8501"]
+    depends_on: {api: {condition: service_healthy}}
+volumes: {model_cache:, caddy_data:, caddy_config:, caddy_logs:}
