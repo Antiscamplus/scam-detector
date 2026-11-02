@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-multipart
+python-dotenv
+requests
+pandas
+faster-whisper
+sentence-transformers
+chromadb
+torch --index-url https://download.pytorch.org/whl/cpu
